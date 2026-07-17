@@ -1,0 +1,60 @@
+# =========================================================
+# 開発環境全体の構成を定義する docker-compose.yml
+#
+# サービス構成:
+#   - app: Go開発コンテナ (devcontainer から利用)
+#   - db : PostgreSQL
+#
+# C#/TypeScript経験者向けメモ:
+#   docker-compose は「複数コンテナをまとめて起動する設定ファイル」。
+#   .NETでいうdocker-compose.yml、Node.jsプロジェクトと同じ感覚で
+#   そのまま使える。Go固有の概念ではない。
+# =========================================================
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      # ソースコードをコンテナにマウントし、ホスト側の変更を即反映
+      - .:/workspace:cached
+      # Goのモジュールキャッシュをボリューム化し、再ビルドを高速化
+      - go-mod-cache:/go/pkg/mod
+    working_dir: /workspace
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=training_db
+      - GIN_MODE=debug
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    # devcontainerから接続する間、コンテナを起動し続けるためのコマンド
+    command: sleep infinity
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=training_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db-data:
+  go-mod-cache:

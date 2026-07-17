@@ -1,0 +1,41 @@
+{
+  "name": "go-gin-training",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "app",
+  "workspaceFolder": "/workspace",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "humao.rest-client",
+        "eamodio.gitlens",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg"
+      ],
+      "settings": {
+        "go.toolsManagement.autoUpdate": true,
+        "go.useLanguageServer": true,
+        "go.lintTool": "golangci-lint",
+        "editor.formatOnSave": true,
+        "[go]": {
+          "editor.defaultFormatter": "golang.go",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+          }
+        }
+      }
+    }
+  },
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  "forwardPorts": [8080, 5432],
+  "portsAttributes": {
+    "8080": { "label": "Gin API Server" },
+    "5432": { "label": "PostgreSQL" }
+  },
+
+  "remoteUser": "vscode"
+}
